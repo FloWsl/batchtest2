@@ -1,12 +1,13 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import ShoppingListScreen from '../components/ShoppingListScreen';
+import UserPreferencesScreen from '../components/UserPreferencesScreen';
+import { useStore } from '../store';
 
-export default function IngredientsScreen() {
+export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
-      <ShoppingListScreen />
+      <UserPreferencesScreen />
     </SafeAreaView>
   );
 }

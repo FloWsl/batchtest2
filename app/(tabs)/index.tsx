@@ -40,7 +40,11 @@ const weeklyMenus = [
     isPremium: false,
     isNew: true,
     estimatedTime: '2h30',
-    cost: '45€'
+    cost: '45€',
+    season: 'Printemps',
+    diet: 'Végétarien',
+    timeRange: '2-3h',
+    equipmentLevel: 'Standard'
   },
   {
     id: 'week-13',
@@ -64,9 +68,93 @@ const weeklyMenus = [
     isPremium: true,
     isNew: false,
     estimatedTime: '2h15',
-    cost: '50€'
+    cost: '50€',
+    season: 'Été',
+    diet: 'Végétarien',
+    timeRange: '2-3h',
+    equipmentLevel: 'Minimal'
   }
 ];
+
+// Filter Chip Component
+const FilterChip = ({ label, active, onPress }) => (
+  <TouchableOpacity 
+    style={[styles.chip, active && styles.activeChip]} 
+    onPress={onPress}
+  >
+    <Text style={[styles.chipText, active && styles.activeChipText]}>{label}</Text>
+  </TouchableOpacity>
+);
+
+// Menu Filters Component
+function MenuFilters({ 
+  selectedSeason, 
+  setSelectedSeason,
+  selectedDiet,
+  setSelectedDiet,
+  selectedTime,
+  setSelectedTime,
+  selectedEquipment,
+  setSelectedEquipment,
+  isDark
+}) {
+  const seasons = ['Printemps', 'Été', 'Automne', 'Hiver'];
+  const diets = ['Tous', 'Végétarien', 'Sans gluten', 'Low-carb'];
+  const timeRanges = ['1-2h', '2-3h', '3h+'];
+  const equipmentLevels = ['Minimal', 'Standard', 'Avancé'];
+
+  return (
+    <View style={styles.filtersContainer}>
+      <Text style={[styles.sectionTitle, isDark && styles.textLight]}>Saison</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+        {seasons.map(season => (
+          <FilterChip 
+            key={season}
+            label={season}
+            active={selectedSeason === season}
+            onPress={() => setSelectedSeason(selectedSeason === season ? null : season)}
+          />
+        ))}
+      </ScrollView>
+
+      <Text style={[styles.sectionTitle, isDark && styles.textLight]}>Régime alimentaire</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+        {diets.map(diet => (
+          <FilterChip 
+            key={diet}
+            label={diet}
+            active={selectedDiet === diet}
+            onPress={() => setSelectedDiet(selectedDiet === diet ? null : diet)}
+          />
+        ))}
+      </ScrollView>
+      
+      <Text style={[styles.sectionTitle, isDark && styles.textLight]}>Temps de préparation</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+        {timeRanges.map(time => (
+          <FilterChip 
+            key={time}
+            label={time}
+            active={selectedTime === time}
+            onPress={() => setSelectedTime(selectedTime === time ? null : time)}
+          />
+        ))}
+      </ScrollView>
+      
+      <Text style={[styles.sectionTitle, isDark && styles.textLight]}>Équipement</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+        {equipmentLevels.map(level => (
+          <FilterChip 
+            key={level}
+            label={level}
+            active={selectedEquipment === level}
+            onPress={() => setSelectedEquipment(selectedEquipment === level ? null : level)}
+          />
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
 
 export default function MenuScreen() {
   const [selectedMenu, setSelectedMenu] = useState<typeof weeklyMenus[0] | null>(null);
@@ -74,6 +162,12 @@ export default function MenuScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { setActiveMenu, activeMenuId } = useStore();
+  
+  // Filter states
+  const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
+  const [selectedDiet, setSelectedDiet] = useState<string | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null);
 
   const openMenuDetail = (menu: typeof weeklyMenus[0]) => {
     if (menu.isPremium && userStatus !== 'premium') {
@@ -86,6 +180,24 @@ export default function MenuScreen() {
   const handleSelectMenu = (menu: typeof weeklyMenus[0]) => {
     setActiveMenu(menu.id);
     setSelectedMenu(null);
+  };
+  
+  // Filter menus based on selected filters
+  const getFilteredMenus = () => {
+    return weeklyMenus.filter(menu => {
+      // If no filters are selected, show all menus
+      if (!selectedSeason && !selectedDiet && !selectedTime && !selectedEquipment) {
+        return true;
+      }
+      
+      // Apply filters
+      const seasonMatch = !selectedSeason || menu.season === selectedSeason;
+      const dietMatch = !selectedDiet || selectedDiet === 'Tous' || menu.diet === selectedDiet;
+      const timeMatch = !selectedTime || menu.timeRange === selectedTime;
+      const equipmentMatch = !selectedEquipment || menu.equipmentLevel === selectedEquipment;
+      
+      return seasonMatch && dietMatch && timeMatch && equipmentMatch;
+    });
   };
 
   const renderMenuCard = (menu: typeof weeklyMenus[0]) => (
@@ -138,6 +250,8 @@ export default function MenuScreen() {
     </TouchableOpacity>
   );
 
+  const filteredMenus = getFilteredMenus();
+
   return (
     <SafeAreaView style={[styles.container, isDark && styles.containerDark]}>
       <ScrollView>
@@ -147,8 +261,41 @@ export default function MenuScreen() {
           </Text>
         </View>
 
+        {/* Menu Filters */}
+        <MenuFilters
+          selectedSeason={selectedSeason}
+          setSelectedSeason={setSelectedSeason}
+          selectedDiet={selectedDiet}
+          setSelectedDiet={setSelectedDiet}
+          selectedTime={selectedTime}
+          setSelectedTime={setSelectedTime}
+          selectedEquipment={selectedEquipment}
+          setSelectedEquipment={setSelectedEquipment}
+          isDark={isDark}
+        />
+
         <View style={styles.menuGrid}>
-          {weeklyMenus.map(menu => renderMenuCard(menu))}
+          {filteredMenus.length > 0 ? (
+            filteredMenus.map(menu => renderMenuCard(menu))
+          ) : (
+            <View style={styles.noResultsContainer}>
+              <Ionicons name="search-outline" size={48} color={isDark ? '#444' : '#DDD'} />
+              <Text style={[styles.noResultsText, isDark && styles.textLight]}>
+                Aucun menu ne correspond à vos critères
+              </Text>
+              <TouchableOpacity
+                style={styles.resetFiltersButton}
+                onPress={() => {
+                  setSelectedSeason(null);
+                  setSelectedDiet(null);
+                  setSelectedTime(null);
+                  setSelectedEquipment(null);
+                }}
+              >
+                <Text style={styles.resetFiltersText}>Réinitialiser les filtres</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -263,6 +410,64 @@ const styles = StyleSheet.create({
   textLightSecondary: {
     color: '#CCCCCC',
   },
+  
+  // Filter styles
+  filtersContainer: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 20,
+    marginTop: 15,
+    marginBottom: 10,
+  },
+  chipRow: {
+    paddingHorizontal: 15,
+    marginBottom: 10,
+  },
+  chip: {
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginHorizontal: 5,
+  },
+  activeChip: {
+    backgroundColor: '#FF6B6B',
+  },
+  chipText: {
+    color: '#666666',
+    fontWeight: '500',
+  },
+  activeChipText: {
+    color: '#FFFFFF',
+  },
+  noResultsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  resetFiltersButton: {
+    backgroundColor: '#FF6B6B',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  resetFiltersText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  
+  // Existing styles (keep these as they are)
   menuGrid: {
     padding: 20,
   },
@@ -386,11 +591,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: '#EEEEEE',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 15,
   },
   recipeItem: {
     flexDirection: 'row',

@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: isDark ? '#1A1A1A' : '#FFFFFF',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     marginHorizontal: 20,
     marginBottom: 20,
@@ -559,8 +559,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A1A1A',
   },
   completedTaskCard: {
-    backgroundColor: isDark ? '#1F2A1F' : '#F5FFF5',
-    opacity: 0.8,
+    backgroundColor: '#F5FFF5',
+  },
+  completedTaskCardDark: {
+    backgroundColor: '#1F2A1F',
   },
   taskLeftSection: {
     flexDirection: 'row',
@@ -624,7 +626,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: isDark ? '#333333' : '#EEEEEE',
+    borderBottomColor: '#EEEEEE',
+  },
+  completedTasksHeaderDark: {
+    borderBottomColor: '#333333',
   },
   completedTasksTitle: {
     fontSize: 16,
@@ -633,5 +638,5 @@ const styles = StyleSheet.create({
   },
   completedTasksTitleDark: {
     color: '#AAAAAA',
-  },
+  }
 });
